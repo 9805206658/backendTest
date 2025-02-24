@@ -2,6 +2,7 @@ require('dotenv').config(); // Load .env file
 // import the alll the module;
 // const connectDB =require('./db');
 const express=require('express');
+const app=express();
 const cors=require('cors');
 app.use(cors({
     origin: '*', // Allow all origins (for testing)
@@ -10,7 +11,7 @@ app.use(cors({
 }));
 
 const bodyParser=require('body-parser');
-const app=express();
+
 const port=process.env.PORT;
 
 // mongodb module;
