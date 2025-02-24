@@ -37,7 +37,6 @@ exports.createMember = async (req, res) => {
   const memberData = req.body;
   console.log(memberData);
   const member = new Member(memberData);
-
   try {
     // Save the data in MongoDB
     const savedMember = await member.save();
