@@ -3,6 +3,12 @@ require('dotenv').config(); // Load .env file
 // const connectDB =require('./db');
 const express=require('express');
 const cors=require('cors');
+app.use(cors({
+    origin: '*', // Allow all origins (for testing)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allowed headers
+}));
+
 const bodyParser=require('body-parser');
 const app=express();
 const port=process.env.PORT;
@@ -14,7 +20,6 @@ app.use(userRouter);
 // middleware
 app.use(express.json());
 fs=require('fs');
-app.use(cors());
 // app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 connectDb();
