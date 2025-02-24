@@ -14,6 +14,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const userRouter = express.Router();
+const cors=require('cors');
 // Apply body-parser middleware to userRouter
 userRouter.use(bodyParser.json());
 userRouter.use(bodyParser.urlencoded({ extended: true }));
