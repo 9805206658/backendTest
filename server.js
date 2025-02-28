@@ -11,35 +11,24 @@ app.use(cors({
 }));
 
 const bodyParser=require('body-parser');
-
 const port=process.env.PORT;
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // mongodb module;
 const connectDb = require('./db');
 const userRouter = require('./routes/userRoutes');
+const productRouter = require('./routes/productRoutes');
+const carRouter = require('./routes/cartRoutes');
+connectDb();
+// here using all route
 app.use(userRouter);
+app.use(productRouter);
+app.use(carRouter);
 // middleware
 app.use(express.json());
-fs=require('fs');
-// app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-connectDb();
-
-
-
-// app.post('/student', async (req, res) => {
-//     try {
-//         const newUser = new Student(req.body);
-//         await newUser.save();
-//         res.status(201).json(newUser);
-//     } catch (err) {
-//         res.status(400).json({ error: err.message });
-//     }
-// });
 
 //listen
 app.listen(port,()=>
 {console.log(`server runing on port ${port}`);
 });
-
-
