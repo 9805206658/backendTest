@@ -107,6 +107,7 @@ const updateCart=async(req,res)=>
 
 
 module.exports={
+    Cart:mongoose.model('Cart',cartSchema),
     createCart,
     deleteCart,
     updateCart

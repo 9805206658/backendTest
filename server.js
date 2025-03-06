@@ -1,6 +1,8 @@
 require('dotenv').config(); // Load .env file
-// import the alll the module;
-// const connectDB =require('./db');
+// import the alll the module
+
+
+
 const express=require('express');
 const app=express();
 const cors=require('cors');
@@ -20,15 +22,23 @@ const connectDb = require('./db');
 const userRouter = require('./routes/userRoutes');
 const productRouter = require('./routes/productRoutes');
 const carRouter = require('./routes/cartRoutes');
+const ratingRouter = require('./routes/ratingRoutes');
 connectDb();
 // here using all route
 app.use(userRouter);
 app.use(productRouter);
 app.use(carRouter);
+app.use(ratingRouter);
 // middleware
 app.use(express.json());
 
-//listen
+
+
+// this code generate jwt secret
+// const crypto = require('crypto');
+// const jwtSecret = crypto.randomBytes(32).toString('hex');
+// console.log(`jwtSecret:${jwtSecret}`);
+
 app.listen(port,()=>
 {console.log(`server runing on port ${port}`);
 });
