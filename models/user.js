@@ -104,11 +104,6 @@ const storage = multer.diskStorage({
     cb(null,`${file.originalname}`);
   }
 })
-
-
-
-
-
 // Get User Function (Fixed `req.params` issue)
 const getUser = async (req, res) => {
   try {

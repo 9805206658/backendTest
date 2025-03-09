@@ -1,7 +1,6 @@
 
 const mongoose  = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-
 const productSchema = new mongoose.Schema({
   seller_id: { type: mongoose.Types.ObjectId,required: true,ref:'User' },
   brand: { type: String, required: true },
@@ -9,15 +8,18 @@ const productSchema = new mongoose.Schema({
   weight: { type: Number, required: true },
   color: { type: String, required: true },
   price: { type: Number, required: true },
-  description: { type: String, required:true},  // ✅ Fixed here
+  description: { type: String, required:true},  
   warrenty_period: { type: Number, required: false },
   image_name: { type: [String], required: true },
-  status: { type: String, enum: ["active", "inactive"], required: true }
+  status: { type: String, enum: ["active", "inactive"], required: true },
+  upload_at : {type:Date,default:Date.now()},
+  quantity:{type:Number}
 });
 
 // here making product model
 const Product= mongoose.model("Product",productSchema);
 const createProduct = async(req,res)=>{
+  console.log(req.headers);
   try{
     const productInfo = req.body;
     const newProduct = new Product(productInfo);
