@@ -1,8 +1,5 @@
 require('dotenv').config(); // Load .env file
 // import the alll the module
-
-
-
 const express=require('express');
 const app=express();
 const cors=require('cors');
@@ -31,8 +28,6 @@ app.use(carRouter);
 app.use(ratingRouter);
 // middleware
 app.use(express.json());
-
-
 
 // this code generate jwt secret
 // const crypto = require('crypto');

@@ -6,11 +6,9 @@ const user = require('../models/user');
 const jwtSecret =process.env.JWT_SECRET ;
 const loginUser = async(req,res)=>{
     const {phone,password,userType} = req.body;
-    console.log(req.body);
     try{
         //  here reading data  by the cont
         const user = await User.findOne({phone:phone,userType:userType});
-        console.log(user);
         if(!user){
             return res.status(400).json({message:"mobile number are not register"});
         }

@@ -3,6 +3,7 @@ const multer = require('multer');
 
 const path = require('path');
 const fs = require('fs');
+// this module are use for the increaption
 const bcrypt = require('bcryptjs');
 const ObjectId = mongoose.Types.ObjectId;
 const {Product} = require("../models/product");

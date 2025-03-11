@@ -1,29 +1,88 @@
 
 const mongoose  = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
+const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
 const productSchema = new mongoose.Schema({
-  seller_id: { type: mongoose.Types.ObjectId,required: true,ref:'User' },
+  sellerId: { type: mongoose.Types.ObjectId,required: true,ref:'User' },
   brand: { type: String, required: true },
   frameMaterial: { type: String, required: true },
   weight: { type: Number, required: true },
   color: { type: String, required: true },
   price: { type: Number, required: true },
   description: { type: String, required:true},  
-  warrenty_period: { type: Number, required: false },
-  image_name: { type: [String], required: true },
-  status: { type: String, enum: ["active", "inactive"], required: true },
-  upload_at : {type:Date,default:Date.now()},
-  quantity:{type:Number}
+  warrentyPeriod: { type: Number, required: false },
+  imageName: { type: [String], required: true },
+  status: { type: String, enum: ["active", "inactive"],default:"active" },
+  uploadAt : {type:Date,default:Date.now()},
+  quantity:{type:Number,required:true}
 });
 
 // here making product model
+const directoryPath = path.join(__dirname,'productImage');
 const Product= mongoose.model("Product",productSchema);
-const createProduct = async(req,res)=>{
-  console.log(req.headers);
+// creating the directory
+if(!fs.existsSync(directoryPath))
+{
+  fs.mkdirSync(directoryPath,{recursive:true});
+  console.log("Directory is create"+directoryPath);
+}
+
+// here setting multerstorae 
+const storage = multer.diskStorage({
+  destination:(req,file,cb)=>{
+     cb(null,directoryPath);
+  }
+  ,
+  filename:(req,file,cb)=>{
+    console.log(file);
+    cb(null,`${file.originalname}`) 
+
+  }
+})
+
+
+// here defining the middleware 
+const uploadPhoto =async(req,res,next)=>{
+  // abstract files and other datra
   try{
-    const productInfo = req.body;
-    const newProduct = new Product(productInfo);
-    const savedProduct = await newProduct.save();
+    console.log("enter");
+   console.log(req.files);
+   console.log(req.body.subData)
+       if(!req.body.subData)
+       {
+         res.status(400).json({message:"missing product data(subdata)"});
+       }
+      req.body.subData = JSON.parse(req.body.subData);
+      
+     next ();
+      }
+      catch(err)
+      {
+        console.log(err);
+        res.status(500).json({error:"error processing image"});
+      }
+}
+
+// here creating multer instance 
+
+const createProduct = async(req,res)=>{
+ const {quantity} = req.body.subData
+  try{ 
+    const productInfo = req.body.subData;
+    console.log(productInfo);
+    // here creating the array product 
+    if(quantity <= 0)
+    {
+      return res.status(401).json({message:"the quntity mus be greater than zero"});
+    }
+    const products  = [];
+    for(let i = 0; i < quantity; i++)
+    {
+      products[i] =  new Product(productInfo);
+    }
+    const savedProduct = await Product.insertMany(products);
     res.status(200).json({message:"Product are succefully added",user:savedProduct});
   }
   catch(err)
@@ -32,6 +91,8 @@ const createProduct = async(req,res)=>{
     res.status(500).json({message:err.message});
    }
 };
+
+
 // api give single product info or all product info
 const getProduct = async(req,res)=>
 {
@@ -96,7 +157,9 @@ const deleteProduct =async(req,res)=>
 module.exports = 
 {
   Product:mongoose.model('Product',productSchema),
+  upload :multer({storage}),
   createProduct,
+  uploadPhoto,
   getProduct,
   updateProduct,
   deleteProduct
