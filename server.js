@@ -20,12 +20,14 @@ const userRouter = require('./routes/userRoutes');
 const productRouter = require('./routes/productRoutes');
 const carRouter = require('./routes/cartRoutes');
 const ratingRouter = require('./routes/ratingRoutes');
+const path = require('path');
 connectDb();
 // here using all route
 app.use(userRouter);
 app.use(productRouter);
 app.use(carRouter);
 app.use(ratingRouter);
+app.use('/productImage', express.static(path.join(__dirname, '/models/productImage')));
 // middleware
 app.use(express.json());
 

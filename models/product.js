@@ -1,4 +1,5 @@
 
+
 const mongoose  = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const fs = require('fs');
@@ -16,7 +17,8 @@ const productSchema = new mongoose.Schema({
   imageName: { type: [String], required: true },
   status: { type: String, enum: ["active", "inactive"],default:"active" },
   uploadAt : {type:Date,default:Date.now()},
-  quantity:{type:Number,required:true}
+  quantity:{type:Number,required:true},
+  isFlashSale:{type:Boolean,enum:[true,false],default:false},
 });
 
 // here making product model
@@ -77,13 +79,9 @@ const createProduct = async(req,res)=>{
     {
       return res.status(401).json({message:"the quntity mus be greater than zero"});
     }
-    const products  = [];
-    for(let i = 0; i < quantity; i++)
-    {
-      products[i] =  new Product(productInfo);
-    }
-    const savedProduct = await Product.insertMany(products);
-    res.status(200).json({message:"Product are succefully added",user:savedProduct});
+     const savedProduct = new Product(productInfo);
+     savedProduct.save();
+        res.status(200).json({message:"Product are succefully added",user:savedProduct});
   }
   catch(err)
   { 
@@ -92,6 +90,29 @@ const createProduct = async(req,res)=>{
    }
 };
 
+const readProduct =async(req,res)=>{
+    try{
+        const productData = await Product.find().lean();
+        const finalData=productData.map((item)=>{
+            item.imageName = item.imageName.map((img)=>{
+                return "productImage/"+img;
+            })
+
+            return item;
+        })
+        console.log(finalData);
+
+    return  res.status(200).json({"message":finalData});
+        
+
+    }
+    catch(err)
+    {
+        console.log(err);
+        return res.status(500).json({error:err});
+
+    }
+}
 
 // api give single product info or all product info
 const getProduct = async(req,res)=>
@@ -159,10 +180,9 @@ module.exports =
   Product:mongoose.model('Product',productSchema),
   upload :multer({storage}),
   createProduct,
+  readProduct,
   uploadPhoto,
   getProduct,
   updateProduct,
   deleteProduct
 }
-
-

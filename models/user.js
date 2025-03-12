@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const multer = require('multer');
-
 const path = require('path');
 const fs = require('fs');
 // this module are use for the increaption
@@ -24,6 +23,7 @@ const userSchema = new mongoose.Schema({
   dob: { type: Date },
   userType:{type:String,enum:["Buyer","Seller"],required:true},
   status: { type: String, enum: ["Active", "Inactive"] },
+  
 });
 
 // ceate model
@@ -32,8 +32,9 @@ const User = mongoose.model("User", userSchema);
 // Create User Function
 const createUser = async (req, res) => {
   try {
+    console.log(req.body);
 
-//     "userName": "JohnDoe",
+// "userName": "JohnDoe",
 // "phone": 9876543210,
 // "email": "johndoe@example.com",
 // "password": "password123",
