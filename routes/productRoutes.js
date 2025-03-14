@@ -1,10 +1,10 @@
 const express = require('express');
 const  productRouter = express.Router();
-const {createProduct,getProduct, updateProduct,deleteProduct,upload,uploadPhoto,readProduct} = require('../models/product');
+const {createProduct,getSingleProduct, updateProduct,deleteProduct,upload,uploadPhoto,getProducts} = require('../models/product');
 productRouter.post('/createProduct',upload.array("files",12),uploadPhoto,createProduct);
 // productRouter.get("/readData",readData);
-productRouter.put('/getProduct/:productId/:checkAll',getProduct);
-productRouter.get('/readProduct',readProduct);
+productRouter.get('/getSingleProduct/:productId',getSingleProduct);
+productRouter.get('/getProducts',getProducts);
 productRouter.put('/updateProduct/:productId',updateProduct);
 productRouter.delete('/deleteProduct/:productId',deleteProduct);
 module.exports = productRouter;

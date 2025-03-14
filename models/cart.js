@@ -1,64 +1,113 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const {Product} = require('./product');
+
 const cartSchema=new mongoose.Schema({
-    seller_id: { type: mongoose.Types.ObjectId,required: true,ref:'User' }, 
-    product_id:{type:ObjectId,required:true,ref:'Product'},
-    description:{type:String},
+    name:{type:String},
+    buyerId: { type: mongoose.Types.ObjectId,required: true,ref:'User' }, 
+    productId:{type:ObjectId,required:true,ref:'Product'},
+    description:{type:String,required:true},
     quantity:{type:Number,required:true},
     price:{type:Number,required:true},
     brand:{type:String,required:true},
     status:{type:String,enum:["active","inactive"],default:"active",required:true},
-    total_price:{type:Number}
+    totalPrice:{type:Number,required:true},
+    // finalQuanity:{type:Number},
+    image:{type:String}
+});
+// here using the pre save hook to calculate the total prices 
+cartSchema.pre("save", function (next) {
+    this.totalPrice = this.price * this.quantity;
+    next();
 });
 
-// here using the pre save hook to calculate the total prices 
-cartSchema.pre("save",(next)=>{
-    console.log("engte");
-  this.total_price = this.price*this.quantity;
-    next();
-})
 const Cart = mongoose.model('Cart',cartSchema);
+
+
 const createCart =async(req,res)=>{
     try
-    {
-        console.log("enter");
-        console.log(req.body);
-        const cartInfo = req.body;
-        const newCart = new Cart(cartInfo);
-        await newCart.save();
-       return res.status(200).json({message:"successfully created cart"});
+    {   
+        const { finalQuantity, ...cartData } = req.body;
+        let updateRes;
+        if(finalQuantity == 0 )
+        {  updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{status:"inactive",quantity:finalQuantity}});}
+        else 
+        { updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{quantity:finalQuantity}}) ;  }
+        const newCart = new Cart(cartData);
+        console.log(newCart);
+         await newCart.save();
+         return res.status(200).json({message:"successfully created cart"});
     }
     catch(err)
-    {
+    {  console.log(err);
        return res.status(500).json({message:err.message});
     }
 }
-// const 
-const deleteCart=async (req,res)=>
-{   try
-    {
-    const {cartId} = req.params;
-    console.log(cartId);
-    // check the cardId valid or not
-    if(!ObjectId.isValid(cartId))
-    {return res.status(400).json({message:"invalid card id"});}
 
-    // before deleting check the item available or not 
-    const availableCard = await Cart.findOne({_id:new ObjectId(cartId)});
-    if(!availableCard)
-    {
-      return res.status(400).json({message:"the product are not available"});
-    }
-     const response =await Cart.deleteOne({ _id:new ObjectId(cartId)});
-     console.log(response);
-     if (response.deletedCount == 0)
-        {return res.status(404).json({message: "Product not found or not authorized to delete" }); }
-         return res.status(404).json({message: "Product deleted successfully"});
+// send the one users card on the basic of the id
+const  getCart=async(req,res)=>{
+    const {buyerId}= req.params;
+    console.log(req.params);
+     try{
+         const getData = await Cart.find({buyerId:buyerId});
+         if(getData.length > 0)
+         { res.status(200).json({message:getData}); }
+         
      }
-    
+     catch(err)
+     {
+       console.log(err);
+       res.status(500).json({error:err});
+     }
+     
+}
+
+const deleteAllCart=async(req,res)=>{
+    try{
+        const{buyerId} = req.params;
+        const allCartInfo = await Cart.find({buyerId:buyerId});
+        console.log(allCartInfo);
+        // updating the corresponding value
+        for (let i = 0; i < allCartInfo.length; i++) { 
+            // Updating product
+            let updateInfo = await Product.updateOne(
+                { _id: new ObjectId(allCartInfo[i].productId)},
+                { $inc: { quantity: allCartInfo[i].quantity } }
+            );
+            console.log(updateInfo);
+        }
+        
+        //delte the cart
+        const deleteInfo =await Cart.deleteMany({buyerId:buyerId});
+        if(deleteInfo.deletedCount >0 )
+        { return  res.status(200).json({message:"All the cart delete successfully"});  }
+        res.status(404).json({error:"error while delete product"});
+    }
     catch(err)
     {
         console.log(err);
+       return  res.status(500).json({error:"error while deleting card"});
+    }
+
+}
+
+const deleteCart=async (req,res)=>
+{   try
+    {
+    const {cartId,productId,quantity} = req.params;
+    if(!ObjectId.isValid(cartId))
+    {return res.status(400).json({message:"invalid card id"});}
+     const availableCard = await Cart.findOne({_id:new ObjectId(cartId)});
+    if(!availableCard)
+        {return res.status(400).json({message:"the cart are not available"});}
+      updateRes = await Product.updateOne({_id:new ObjectId(productId)},{$inc:{quantity:quantity}});
+      const response =await Cart.deleteOne({ _id:new ObjectId(cartId)});
+     if (response.deletedCount == 0)
+        {return res.status(404).json({message: "Product not found or not authorized to delete" }); }
+      return res.status(200).json({message: "Product deleted successfully"});
+     }
+   catch(err)
+    {   console.log(err);
         return res.status(500),json({message:err.message});
     }   
 
@@ -108,7 +157,9 @@ const updateCart=async(req,res)=>
 
 module.exports={
     Cart:mongoose.model('Cart',cartSchema),
+    getCart,
     createCart,
     deleteCart,
+    deleteAllCart,
     updateCart
 }

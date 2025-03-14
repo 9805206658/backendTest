@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const productSchema = new mongoose.Schema({
   sellerId: { type: mongoose.Types.ObjectId,required: true,ref:'User' },
+  name:{type:String,require:true},
   brand: { type: String, required: true },
   frameMaterial: { type: String, required: true },
   weight: { type: Number, required: true },
@@ -90,7 +91,7 @@ const createProduct = async(req,res)=>{
    }
 };
 
-const readProduct =async(req,res)=>{
+const getProducts =async(req,res)=>{
     try{
         const productData = await Product.find().lean();
         const finalData=productData.map((item)=>{
@@ -103,8 +104,6 @@ const readProduct =async(req,res)=>{
         console.log(finalData);
 
     return  res.status(200).json({"message":finalData});
-        
-
     }
     catch(err)
     {
@@ -113,29 +112,24 @@ const readProduct =async(req,res)=>{
 
     }
 }
-
+ 
 // api give single product info or all product info
-const getProduct = async(req,res)=>
+const getSingleProduct = async(req,res)=>
 {
   console.log("enter get product");
   console.log(req.params);
   try{
-    const {checkAll,productId} = req.params;
-    console.log(typeof checkAll);
-    console.log(checkAll);
-    console.log(productId);
-    if(checkAll == "true")
-    { 
-      console.log("enter");
-    return res.status(200).json({message:await Product.find()});
-    }
-    else{
-      return res.status(200).json({message:await Product.findById(productId)});
-    }
-   
+    const {productId} = req.params;
+    const product = await Product.findById(productId)
+    product.imageName = product.imageName.map((img)=>{
+      return "productImage/"+img;
+      });
+     return res.status(200).json({message:product});
   }
   catch(err)
-  {res.status(500).json({message:err.message});
+  {
+    console.log(err);
+    res.status(500).json({message:err.message});
   }
 }
 
@@ -180,9 +174,9 @@ module.exports =
   Product:mongoose.model('Product',productSchema),
   upload :multer({storage}),
   createProduct,
-  readProduct,
+  getProducts,
   uploadPhoto,
-  getProduct,
+  getSingleProduct,
   updateProduct,
   deleteProduct
 }
