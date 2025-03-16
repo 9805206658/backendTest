@@ -87,7 +87,7 @@ const createProduct = async(req,res)=>{
   catch(err)
   { 
     console.log(err);
-    res.status(500).json({message:err.message});
+    res.status(500).json({error:err.message});
    }
 };
 
@@ -95,8 +95,9 @@ const getProducts =async(req,res)=>{
     try{
         const productData = await Product.find().lean();
         const finalData=productData.map((item)=>{
+          // return the image for dispaly purpose
             item.imageName = item.imageName.map((img)=>{
-                return "productImage/"+img;
+                return "/productImage/"+img;
             })
 
             return item;
@@ -122,7 +123,7 @@ const getSingleProduct = async(req,res)=>
     const {productId} = req.params;
     const product = await Product.findById(productId)
     product.imageName = product.imageName.map((img)=>{
-      return "productImage/"+img;
+      return "/productImage/"+img;
       });
      return res.status(200).json({message:product});
   }
@@ -145,7 +146,6 @@ const updateProduct=async(req,res)=>{
       return res.status(400).json({message:'the product with given id not found'});
     }
     res.status(200).json({message:updateProduct});
-
 }
   catch(err)
   {
@@ -169,12 +169,68 @@ const deleteProduct =async(req,res)=>
     { res.status(400).json({message:err.message}); }
   }
 
+
+ const getFlashSale=async(req,res)=>{
+  try{
+     const data = await Product.find({isFlashSale:true});
+     if(data.length >0)
+     {  
+       const finalData  = data.map((obj)=>{
+           obj.imageName=obj.imageName.map((img)=>{
+            return "/productImage/"+img;
+           })
+           return obj;
+       })
+      return res.status(200).json({message:finalData});
+     }
+   }
+  catch(err)
+   {
+     return res.status(500).json({error:err});
+   } 
+ }
+
+
+//  select the unique product on basic of the brand 
+// db.products.aggregate([
+//   { $group: { _id: "$brand", doc: { $first: "$$ROOT" } } },
+//   { $replaceRoot: { newRoot: "$doc" } }
+// ])
+
+const getUniqueBrand =async(req,res)=>{
+  try{
+    console.log("brneeeh");
+     const data= await Product.aggregate([
+      {$group:{_id:"$brand",doc:{$first:"$$ROOT"}}},
+      {$replaceRoot:{newRoot:"$doc"}}
+     ]);
+     if(data.length >0)
+      {  
+        const finalData  = data.map((obj)=>{
+            obj.imageName=obj.imageName.map((img)=>{
+             return "/productImage/"+img;
+            })
+            return obj;
+        })
+       return res.status(200).json({message:finalData});
+      }
+  }
+  catch(err)
+  {
+    console.log(err);
+
+  }
+
+}
+
 module.exports = 
 {
   Product:mongoose.model('Product',productSchema),
   upload :multer({storage}),
   createProduct,
+  getUniqueBrand,
   getProducts,
+  getFlashSale,
   uploadPhoto,
   getSingleProduct,
   updateProduct,

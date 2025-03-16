@@ -42,36 +42,35 @@ const loginUser = async(req,res)=>{
 
 // here checking the authntication token 
 const authntication =(req,res,next)=>{
-  console.log(req);
   const token = req.headers["authorization"]?.split(" ")[1];
+  console.log(token);
   if(!token)
   {
-    return res.status(401).json({message:"access denied no token is providied"});
+    return res.status(401).json({error:"access denied no token is providied"});
   }
   try{
     // here verify toekn
     if(jwt.verify(token,jwtSecret,(err,user)=>{
       if(err)
       {
-        return res.status(403).json({message:"invalid token"});
+        console.log(err);
+        return res.status(403).json({error:"token expired or inavlid please login again "});
       }
       else{
         if(req.route.path === "/tokenChecker"){
-          return res.status(200).json({message:"token is valid"});
+          return res.status(200).json({error:"token is valid please login again"});
         }
       }
-      console.log("the user");
-      console.log(user);
-      console.log("the req user  is");
-      console.log(req.user);
-
+    
      req.user = user;
+    
      next ();
     }));
   }
   catch(err)
   {
-    return res.status(403).json({message:"invalid or expired token"});
+    console.log(err);
+    return res.status(403).json({error:"invalid or expired token please login again"});
   }
   
 
@@ -83,4 +82,5 @@ const authntication =(req,res,next)=>{
 
 module.exports={
     loginUser,
+    authntication,
 }

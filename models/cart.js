@@ -22,8 +22,6 @@ cartSchema.pre("save", function (next) {
 });
 
 const Cart = mongoose.model('Cart',cartSchema);
-
-
 const createCart =async(req,res)=>{
     try
     {   
@@ -33,6 +31,7 @@ const createCart =async(req,res)=>{
         {  updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{status:"inactive",quantity:finalQuantity}});}
         else 
         { updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{quantity:finalQuantity}}) ;  }
+        console.log(updateRes);
         const newCart = new Cart(cartData);
         console.log(newCart);
          await newCart.save();
@@ -94,13 +93,22 @@ const deleteAllCart=async(req,res)=>{
 const deleteCart=async (req,res)=>
 {   try
     {
+    
+   console.log(req.params);
     const {cartId,productId,quantity} = req.params;
-    if(!ObjectId.isValid(cartId))
+
+    
+      if(!ObjectId.isValid(cartId))
     {return res.status(400).json({message:"invalid card id"});}
      const availableCard = await Cart.findOne({_id:new ObjectId(cartId)});
     if(!availableCard)
         {return res.status(400).json({message:"the cart are not available"});}
-      updateRes = await Product.updateOne({_id:new ObjectId(productId)},{$inc:{quantity:quantity}});
+      updateRes = await Product.updateOne(
+        {_id:new ObjectId(productId)},
+        {$inc:{quantity:quantity},
+        $set:{status:quantity>0?"active":'inactive'}}
+
+     );
       const response =await Cart.deleteOne({ _id:new ObjectId(cartId)});
      if (response.deletedCount == 0)
         {return res.status(404).json({message: "Product not found or not authorized to delete" }); }
@@ -108,7 +116,7 @@ const deleteCart=async (req,res)=>
      }
    catch(err)
     {   console.log(err);
-        return res.status(500),json({message:err.message});
+        return res.status(500).json({message:err});
     }   
 
 }
@@ -116,37 +124,25 @@ const updateCart=async(req,res)=>
 {
     try{
         console.log("enter");
-        const {cartId} = req.params;
-        const cartInfo = req.body;
-        //here chcecking item availabe or not
+        const {productId,cartId,cartFinalQty,productFinalQty}= req.body;
+        console.log(productFinalQty);
         
+        console.log(req.body)
+        //here chcecking item availabe or not 
         const existingCart = await Cart.findById(cartId);
         if(!existingCart)
-        {
-         return res.status(400).json({message:"invalid car id format"});
+        { return res.status(400).json({message:"invalid car id format"});
         } 
-        // here updating the cart
-        const updateCart = await Cart.findByIdAndUpdate(cartId,cartInfo,{new:true,runValidators:true});
-        if(!updateCart)
+        // update product 
+         const updateRes = await Product.updateOne({_id:new ObjectId(productId)},{$set:{quantity:productFinalQty==null?0:productFinalQty}});
+        const cartResult = await Cart.updateOne({_id:new ObjectId(cartId)},{$set:{quantity:cartFinalQty==null?0:cartFinalQty}});
+        console.log(updateRes);
+        console.log(cartResult);
+        if(cartResult.matchedCount>0)
         {
-         return res.status(400).json({message:"faile to udpate cart"});
+        //update cart
+        return  res.status(200).json({message:"cart are successfully updated"});
         }
-        const updateProps= new Set();;
-        
-         for (let key in cartInfo ) {
-            console.log(cartInfo[key]);
-            console.log(existingCart[key]);
-            if(cartInfo[key] != existingCart[key])
-            {
-            updateProps.add(key);
-            }
-          }
-       const udpateTextField = [...updateProps].join(",")||"no fields";
-       return res.status(200).json
-        ( { 
-          message:`succefully update ${udpateTextField}`,
-          updateCart
-         });
     }
     catch(err)
     { console.log(err);
