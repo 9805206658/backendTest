@@ -90,6 +90,35 @@ const createProduct = async(req,res)=>{
     res.status(500).json({error:err.message});
    }
 };
+function designRes(totalProduct)
+{
+  const designData=totalProduct.map((item)=>{
+    // return the image for dispaly purpose
+      item.imageName = item.imageName.map((img)=>{
+          return "/productImage/"+img;
+      })
+
+      return item;
+  })
+  return designData;
+
+
+}
+const getSellerProduct=async(req,res)=>{
+  try{
+     const {sellerId} = req.params;
+     const sellerProduct = await Product.find({sellerId:sellerId});
+     const finalData= designRes(sellerProduct);
+    return  res.status(200).json({"message":finalData});
+  }
+  catch(err)
+  {
+    console.log(err);
+    return res.status(500).json({error:err});
+
+  }
+
+}
 
 const getProducts =async(req,res)=>{
     try{
@@ -134,6 +163,7 @@ const getSingleProduct = async(req,res)=>
   }
 }
 
+// it implemet by seler side 
 const updateProduct=async(req,res)=>{
   try{
     const {productId} = req.params;
@@ -153,25 +183,62 @@ const updateProduct=async(req,res)=>{
   }
   }
 
-  // delete proudct
+  const flashSaleUpdate =async(req,res)=>{
+    try{
+         const {productId,isFlash} = req.params;
+         console.log(req.params);
+        const updateRes= await Product.updateOne({_id:new ObjectId(productId)},{$set:{isFlashSale:isFlash}});
+        console.log(updateRes);
+        if(updateRes.modifiedCount>0)
+        {
+         return res.status(200).json({message:"flash sale udateds succesfully"});
+        }
+      }
+      catch(err)
+      {
+        console.log(err);
+       return  res.status(500).json({errors:err});
+      }
+        
+
+          
+
+  }
+  // it is implemet by seller side 
 const deleteProduct =async(req,res)=>
-  {try
+  {
+    try
     {
      const{productId}= req.params;
      if(!ObjectId.isValid(productId))
        {return res.status(400).json({error:"invalid product id"});}
+    //  get the image of the product
+     const image = (await Product.findOne({_id:new ObjectId(productId)})).imageName;
+     console.log(image);
+     image.forEach((img)=>{
+       fs.unlink(path.join(directoryPath,img),(err)=>{
+        console.log(err);
+       });
+     })
+    //  delete the photo related   
        const result = await Product.deleteOne({ _id:new ObjectId(productId)});
      if (result.deletedCount == 0)
       {return res.status(404).json({message: "Product not found or not authorized to delete" }); }
-       return res.status(404).json({message: "Product deleted successfully"});
+       return res.status(200).json({message: "Product deleted successfully"});
    }
     catch(err)
-    { res.status(400).json({message:err.message}); }
+    { 
+      console.log(err);
+      res.status(400).json({message:err.message});
+     }
+
+    
   }
 
 
  const getFlashSale=async(req,res)=>{
   try{
+    
      const data = await Product.find({isFlashSale:true});
      if(data.length >0)
      {  
@@ -234,5 +301,7 @@ module.exports =
   uploadPhoto,
   getSingleProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getSellerProduct,
+  flashSaleUpdate
 }

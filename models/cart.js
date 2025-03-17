@@ -46,11 +46,18 @@ const createCart =async(req,res)=>{
 // send the one users card on the basic of the id
 const  getCart=async(req,res)=>{
     const {buyerId}= req.params;
+    
     console.log(req.params);
      try{
+        console.log("getDat");
          const getData = await Cart.find({buyerId:buyerId});
-         if(getData.length > 0)
-         { res.status(200).json({message:getData}); }
+         console.log(getData);
+         
+ return res.status(200).json({message:getData}); 
+        //  else{
+        //     return res.status(200).json({message:getData})
+        //  }
+         
          
      }
      catch(err)
