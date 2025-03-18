@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
-const {Product} = require('./product');
+const {Product} = require('../models/product');
+
 
 const cartSchema=new mongoose.Schema({
     name:{type:String},
@@ -26,6 +27,8 @@ const createCart =async(req,res)=>{
     try
     {   
         const { finalQuantity, ...cartData } = req.body;
+        console.log(req.body);
+        console.log(cartData);
         let updateRes;
         if(finalQuantity == 0 )
         {  updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{status:"inactive",quantity:finalQuantity}});}
@@ -103,8 +106,6 @@ const deleteCart=async (req,res)=>
     
    console.log(req.params);
     const {cartId,productId,quantity} = req.params;
-
-    
       if(!ObjectId.isValid(cartId))
     {return res.status(400).json({message:"invalid card id"});}
      const availableCard = await Cart.findOne({_id:new ObjectId(cartId)});

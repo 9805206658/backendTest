@@ -62,6 +62,7 @@ const authntication =(req,res,next)=>{
         }
       }
     
+      // if the othe rpather 
      req.user = user;
     
      next ();

@@ -8,10 +8,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const {Product} = require("../models/product");
 // import for deleting when the user are delete
 const {Cart} = require("../models/cart");
-const { upload } = require("./test");
 const directoryPath = path.join(__dirname,'uploads');
-
-// const Product = mainModule.Product;
 
 // Define User Schema
 const userSchema = new mongoose.Schema({
@@ -159,10 +156,7 @@ const updateUser = async(req,res)=>
       const deletedProducts = await Product.deleteMany({ seller_id: userId });
       // here deleting the cart of the corresponding user 
       const deletedCart= await Cart.deleteOne({ seller_id: userId });
-      
-      console.log(`Deleted ${deletedCart.deletedCount} carts for user ${userId}`);
-      console.log(`Deleted ${deletedProducts.deletedCount} products for user ${userId}`);
-      await User.findByIdAndDelete(userId);
+        await User.findByIdAndDelete(userId);
      return res.status(200).json({ message: "User and associated products deleted successfully" });
   
     } catch (err) {

@@ -50,9 +50,6 @@ const storage = multer.diskStorage({
 const uploadPhoto =async(req,res,next)=>{
   // abstract files and other datra
   try{
-    console.log("enter");
-   console.log(req.files);
-   console.log(req.body.subData)
        if(!req.body.subData)
        {
          res.status(400).json({message:"missing product data(subdata)"});
@@ -123,14 +120,7 @@ const getSellerProduct=async(req,res)=>{
 const getProducts =async(req,res)=>{
     try{
         const productData = await Product.find().lean();
-        const finalData=productData.map((item)=>{
-          // return the image for dispaly purpose
-            item.imageName = item.imageName.map((img)=>{
-                return "/productImage/"+img;
-            })
-
-            return item;
-        })
+        const finalData=designRes(productData);
         console.log(finalData);
 
     return  res.status(200).json({"message":finalData});
@@ -231,7 +221,6 @@ const deleteProduct =async(req,res)=>
       console.log(err);
       res.status(400).json({message:err.message});
      }
-
     
   }
 
@@ -242,12 +231,7 @@ const deleteProduct =async(req,res)=>
      const data = await Product.find({isFlashSale:true});
      if(data.length >0)
      {  
-       const finalData  = data.map((obj)=>{
-           obj.imageName=obj.imageName.map((img)=>{
-            return "/productImage/"+img;
-           })
-           return obj;
-       })
+       const finalData  = designRes(data);
       return res.status(200).json({message:finalData});
      }
    }

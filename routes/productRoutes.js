@@ -9,6 +9,7 @@ productRouter.get('/getUniqueBrand',getUniqueBrand);
 productRouter.get('/getFlashSale',getFlashSale);
 productRouter.put('/updateProduct/:productId',updateProduct);
 productRouter.delete('/deleteProduct/:productId',deleteProduct);
+// productRouter.delete('/deleteAllProduct/slelerId',deleteAllProduct);
 productRouter.get('/getSellerProduct/:sellerId',getSellerProduct);
 productRouter.put('/flashSaleUpdate/:productId/:isFlash',flashSaleUpdate);
 
