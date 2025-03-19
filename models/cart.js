@@ -13,6 +13,7 @@ const cartSchema=new mongoose.Schema({
     brand:{type:String,required:true},
     status:{type:String,enum:["active","inactive"],default:"active",required:true},
     totalPrice:{type:Number,required:true},
+     isCheck:{type:Boolean,default:true,required:true},
     // finalQuanity:{type:Number},
     image:{type:String}
 });
@@ -27,16 +28,13 @@ const createCart =async(req,res)=>{
     try
     {   
         const { finalQuantity, ...cartData } = req.body;
-        console.log(req.body);
-        console.log(cartData);
         let updateRes;
-        if(finalQuantity == 0 )
+        if(finalQuantity <=0)
         {  updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{status:"inactive",quantity:finalQuantity}});}
         else 
         { updateRes = await Product.updateOne({_id:new ObjectId(cartData.productId)},{$set:{quantity:finalQuantity}}) ;  }
-        console.log(updateRes);
+        
         const newCart = new Cart(cartData);
-        console.log(newCart);
          await newCart.save();
          return res.status(200).json({message:"successfully created cart"});
     }
@@ -49,19 +47,10 @@ const createCart =async(req,res)=>{
 // send the one users card on the basic of the id
 const  getCart=async(req,res)=>{
     const {buyerId}= req.params;
-    
-    console.log(req.params);
      try{
-        console.log("getDat");
-         const getData = await Cart.find({buyerId:buyerId});
-         console.log(getData);
-         
- return res.status(200).json({message:getData}); 
-        //  else{
-        //     return res.status(200).json({message:getData})
-        //  }
-         
-         
+        const getData = await Cart.find({buyerId:buyerId});
+           return res.status(200).json({message:getData}); 
+                  
      }
      catch(err)
      {
@@ -159,11 +148,43 @@ const updateCart=async(req,res)=>
 }
 
 
+// update is check field
+const updateIsCheck = async(req,res)=>{
+
+     const {isAllCheck,cartId,buyerId,checkStatus} = req.body;
+     console.log("enter in udpate check");
+     console.log(req.body);
+     try{
+     let updateInfo;
+    //  update all the card
+     if(isAllCheck)
+        {
+         console.log("enter");
+        updateInfo=await Cart.updateMany({buyerId:buyerId},{$set:{isCheck:checkStatus}});
+     }
+     else{
+        updateInfo=await Cart.updateOne({_id:new ObjectId(cartId)},{$set:{isCheck:checkStatus}});
+     }
+     console.log(updateInfo);
+     if(updateInfo.modifiedCount >0 || updateInfo.matchedCount > 0)
+     {
+        return res.status(201).json({message:"successfuly update check field"});
+     }
+    }
+    catch(err)
+    {
+        console.log(err);
+        return res.status(500).json({error:err});
+    }
+}
+
+
 module.exports={
     Cart:mongoose.model('Cart',cartSchema),
     getCart,
     createCart,
     deleteCart,
     deleteAllCart,
-    updateCart
+    updateCart,
+    updateIsCheck
 }
