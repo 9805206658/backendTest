@@ -4,7 +4,7 @@ const mongoose  = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const fs = require('fs');
 const multer = require('multer');
-const {Cart} = require('./cart');
+// const {Cart} = require('./cart');
 const path = require('path');
 const productSchema = new mongoose.Schema({
   sellerId: { type: mongoose.Types.ObjectId,required: true,ref:'User' },
@@ -225,46 +225,46 @@ const deleteProduct =async(req,res)=>
 
 
 //  here deleting all product 
-const deleteAllProduct =async(req,res)=>{
-  try{
-  const  {sellerId} = req.params;
-  const productInfos = await Product.find({sellerId:sellerId});
-  if(productInfos.length <= 0)
-    { return res.status(500).json({error:"product are not found"});}
-  // delete file 
-  productInfos.forEach((item)=>[
-    item.imageName.forEach((image)=>{
-      fs.unlink(path.join(directoryPath,image),(err)=>{
-        if(err)
-        {console.log(err);}
-      })
-    })
+// const deleteAllProduct =async(req,res)=>{
+//   try{
+//   const  {sellerId} = req.params;
+//   const productInfos = await Product.find({sellerId:sellerId});
+//   if(productInfos.length <= 0)
+//     { return res.status(500).json({error:"product are not found"});}
+//   // delete file 
+//   productInfos.forEach((item)=>[
+//     item.imageName.forEach((image)=>{
+//       fs.unlink(path.join(directoryPath,image),(err)=>{
+//         if(err)
+//         {console.log(err);}
+//       })
+//     })
 
-  ])
-  // delete cart belong to product
-  productInfos.forEach(async(item)=>{
-    try{
-       await Cart.deleteMany({productId:item._id});
-   }
-    catch(err)
-    { console.log(err);
-    }
+//   ])
+//   // delete cart belong to product
+//   productInfos.forEach(async(item)=>{
+//     try{
+//        await Cart.deleteMany({productId:item._id});
+//    }
+//     catch(err)
+//     { console.log(err);
+//     }
     
-  })
-  // delete product 
- const deleteInfo = await Product.deleteMany({sellerId:sellerId});
- if(deleteInfo.deletedCount > 0)
- {
-   return res.status(200).json({message:"successfully delete card"});
- }
+//   })
+//   // delete product 
+//  const deleteInfo = await Product.deleteMany({sellerId:sellerId});
+//  if(deleteInfo.deletedCount > 0)
+//  {
+//    return res.status(200).json({message:"successfully delete card"});
+//  }
 
-}
-catch(err)
-{
-  console.log(err);
-  return res.satus(200).json({error:err});
-}
-}
+// }
+// catch(err)
+// {
+//   console.log(err);
+//   return res.satus(200).json({error:err});
+// }
+// }
 
 
 
@@ -325,5 +325,5 @@ module.exports =
   deleteProduct,
   getSellerProduct,
   flashSaleUpdate,
-  deleteAllProduct
+  // deleteAllProduct
 }
