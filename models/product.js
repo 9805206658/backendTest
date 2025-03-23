@@ -21,6 +21,7 @@ const productSchema = new mongoose.Schema({
   uploadAt : {type:Date,default:Date.now()},
   quantity:{type:Number,required:true},
   isFlashSale:{type:Boolean,enum:[true,false],default:false},
+  discount:{type:Number,default:0}
 });
 
 // here making product model
@@ -122,7 +123,7 @@ const getProducts =async(req,res)=>{
     try{
         const productData = await Product.find().lean();
         const finalData=designRes(productData);
-        console.log(finalData);
+        // console.log(finalData);
 
     return  res.status(200).json({"message":finalData});
     }
@@ -142,7 +143,7 @@ const getSingleProduct = async(req,res)=>
   try{
     const {productId} = req.params;
     const product = await Product.findById(productId)
-    product.imageName = product.imageName.map((img)=>{
+    product.imageName = product.imageName?.map((img)=>{
       return "/productImage/"+img;
       });
      return res.status(200).json({message:product});
@@ -173,11 +174,11 @@ const updateProduct=async(req,res)=>{
     res.status(500).json({error:err.message});
   }
   }
-
-
+  
 
   const flashSaleUpdate =async(req,res)=>{
     try{
+      console.log("enter to update flash sale");
          const {productId,isFlash} = req.params;
          console.log(req.params);
         const updateRes= await Product.updateOne({_id:new ObjectId(productId)},{$set:{isFlashSale:isFlash}});
@@ -192,6 +193,27 @@ const updateProduct=async(req,res)=>{
         console.log(err);
        return  res.status(500).json({errors:err});
       }           
+  }
+
+
+  const discountUpdate = async(req,res)=>{
+    try{
+      console.log("enter in dicsount");
+       const {productId,disPer} = req.params;
+       console.log(req.params);
+       const updateRes= await Product.updateOne({_id:new ObjectId(productId)},{$set:{discount:disPer}});
+      console.log(updateRes);
+      if(updateRes.modifiedCount>0)
+        {
+         return res.status(200).json({message:"discount update succefully udateds succesfully"});
+        }
+    }
+    catch(err)
+    {
+      console.log(err);
+      return  res.status(500).json({errors:err});
+
+    }
   }
   // it is implemet by seller side 
 const deleteProduct =async(req,res)=>
@@ -225,46 +247,34 @@ const deleteProduct =async(req,res)=>
 
 
 //  here deleting all product 
-// const deleteAllProduct =async(req,res)=>{
-//   try{
-//   const  {sellerId} = req.params;
-//   const productInfos = await Product.find({sellerId:sellerId});
-//   if(productInfos.length <= 0)
-//     { return res.status(500).json({error:"product are not found"});}
-//   // delete file 
-//   productInfos.forEach((item)=>[
-//     item.imageName.forEach((image)=>{
-//       fs.unlink(path.join(directoryPath,image),(err)=>{
-//         if(err)
-//         {console.log(err);}
-//       })
-//     })
-
-//   ])
-//   // delete cart belong to product
-//   productInfos.forEach(async(item)=>{
-//     try{
-//        await Cart.deleteMany({productId:item._id});
-//    }
-//     catch(err)
-//     { console.log(err);
-//     }
-    
-//   })
-//   // delete product 
-//  const deleteInfo = await Product.deleteMany({sellerId:sellerId});
-//  if(deleteInfo.deletedCount > 0)
-//  {
-//    return res.status(200).json({message:"successfully delete card"});
-//  }
-
-// }
-// catch(err)
-// {
-//   console.log(err);
-//   return res.satus(200).json({error:err});
-// }
-// }
+ const deleteAllProduct =async(req,res)=>{
+   try{
+   const  {sellerId} = req.params;
+   const productInfos = await Product.find({sellerId:sellerId});
+   if(productInfos.length <= 0)
+     { return res.status(500).json({error:"product are not found"});}
+   // delete file 
+   productInfos.forEach((item)=>[
+     item.imageName.forEach((image)=>{
+       fs.unlink(path.join(directoryPath,image),(err)=>{
+         if(err)
+         {console.log(err);}
+       })
+     })
+   ])
+   // delete product 
+  const deleteInfo = await Product.deleteMany({sellerId:sellerId});
+  if(deleteInfo.deletedCount > 0)
+  {
+    return res.status(200).json({message:"successfully delete card"});
+  }
+ }
+ catch(err)
+ {
+   console.log(err);
+   return res.satus(200).json({error:err});
+ }
+ }
 
 
 
@@ -272,7 +282,9 @@ const deleteProduct =async(req,res)=>
  const getFlashSale=async(req,res)=>{
   try{
     
+    console.log("enter");
      const data = await Product.find({isFlashSale:true});
+     console.log(data);
      if(data.length >0)
      {  
        const finalData  = designRes(data);
@@ -287,11 +299,12 @@ const deleteProduct =async(req,res)=>
 
 const getUniqueBrand =async(req,res)=>{
   try{
-    console.log("brneeeh");
+    // console.log("brneeeh");
      const data= await Product.aggregate([
       {$group:{_id:"$brand",doc:{$first:"$$ROOT"}}},
       {$replaceRoot:{newRoot:"$doc"}}
      ]);
+    //  console.log(data);
      if(data.length >0)
       {  
         const finalData  = data.map((obj)=>{
@@ -311,6 +324,22 @@ const getUniqueBrand =async(req,res)=>{
 
 }
 
+// here implementing search functionality
+  const search = async(req,res)=>{
+  const {query} = req.body;
+   try{
+    const data = await Product.find({
+      $text:{$text:query},
+    });
+     res.status(200).json({message:data});
+   }
+   catch(err)
+   {
+    console.log(err)
+
+   }
+}
+
 module.exports = 
 {
   Product:mongoose.model('Product',productSchema),
@@ -323,7 +352,9 @@ module.exports =
   getSingleProduct,
   updateProduct,
   deleteProduct,
+  deleteAllProduct,
   getSellerProduct,
   flashSaleUpdate,
-  // deleteAllProduct
+  discountUpdate,
+  search,
 }

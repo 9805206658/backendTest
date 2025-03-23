@@ -41,7 +41,7 @@ const loginUser = async(req,res)=>{
 }
 
 // here checking the authntication token 
-const authntication =(req,res,next)=>{
+const authentication =(req,res,next)=>{
   const token = req.headers["authorization"]?.split(" ")[1];
   console.log(token);
   if(!token)
@@ -78,10 +78,7 @@ const authntication =(req,res,next)=>{
   }
 
 
-
-
-
 module.exports={
     loginUser,
-    authntication,
+    authentication,
 }

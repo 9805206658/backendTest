@@ -13,7 +13,8 @@ const cartSchema=new mongoose.Schema({
     brand:{type:String,required:true},
     status:{type:String,enum:["active","inactive"],default:"active",required:true},
     totalPrice:{type:Number,required:true},
-     isCheck:{type:Boolean,default:true,required:true},
+    isCheck:{type:Boolean,default:true,required:true},
+    discount:{type:Number,default:0},
     // finalQuanity:{type:Number},
     image:{type:String}
 });

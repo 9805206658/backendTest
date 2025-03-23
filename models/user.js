@@ -29,21 +29,8 @@ const User = mongoose.model("User", userSchema);
 // Create User Function
 const createUser = async (req, res) => {
   try {
-    console.log(req.body);
-
-// "userName": "JohnDoe",
-// "phone": 9876543210,
-// "email": "johndoe@example.com",
-// "password": "password123",
-// "gender": "Male",
-// "dob": "1990-05-15",
-// "userType": "Buyer",
-// "status": "Active",
-// "contactInfo": 9876543210
-// }
     const userInfo = req.body;
      userInfo.password=await bcrypt.hash(req.body.password,10);
-  
     const existingUser = await User.findOne({ email: userInfo.email });
     console.log("the exist user is")
     // console.log(existingUser);
